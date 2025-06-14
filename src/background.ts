@@ -45,6 +45,7 @@ chrome.runtime.onMessage.addListener(async (request, _, sendResponse) => {
       await groupTabs();
       sendResponse({ success: true });
     } catch (error) {
+      console.error('Error grouping tabs:', error);
       sendResponse({ success: false, error: error });
     }
   }

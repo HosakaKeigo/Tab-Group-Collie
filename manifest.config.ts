@@ -5,7 +5,7 @@ const { version, name, description } = packageJson;
 
 export default defineManifest({
   manifest_version: 3,
-  name: process.env.NODE_ENV === 'development' ? `[DEV] ${name}` : 'Golden Retabriever',
+  name: process.env.NODE_ENV === 'development' ? `[DEV] ${name}` : 'Tab Group Collie',
   version,
   description,
   icons: {
