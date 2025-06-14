@@ -193,13 +193,54 @@ export class TabGrouper {
   }
 
   static async createTabGroups(suggestions: GroupSuggestion[]): Promise<void> {
+    let successCount = 0;
+    let errorCount = 0;
+
     for (const suggestion of suggestions) {
-      const tabIds = suggestion.tabs.map(tab => tab.id);
-      const groupId = await chrome.tabs.group({ tabIds });
-      await chrome.tabGroups.update(groupId, {
-        title: suggestion.groupName,
-        color: suggestion.color,
-      });
+      try {
+        // タブIDの有効性をチェック
+        const tabIds = suggestion.tabs
+          .map(tab => tab.id)
+          .filter(id => id && id > 0);
+
+        if (tabIds.length < 2) {
+          console.warn(`Skipping group "${suggestion.groupName}": insufficient valid tabs (${tabIds.length})`);
+          continue;
+        }
+
+        console.log(`Creating group "${suggestion.groupName}" with ${tabIds.length} tabs:`, tabIds);
+
+        // タブグループを作成
+        const groupId = await chrome.tabs.group({ tabIds });
+
+        // グループのタイトルと色を設定
+        await chrome.tabGroups.update(groupId, {
+          title: suggestion.groupName,
+          color: suggestion.color,
+        });
+
+        successCount++;
+        console.log(`✅ Successfully created group: "${suggestion.groupName}" (ID: ${groupId})`);
+
+      } catch (error) {
+        errorCount++;
+        console.error(`❌ Failed to create group "${suggestion.groupName}":`, {
+          error: error,
+          tabIds: suggestion.tabs.map(tab => tab.id),
+          tabTitles: suggestion.tabs.map(tab => tab.title),
+        });
+
+        // 権限エラーの場合は詳細を表示
+        if (error instanceof Error && error.message?.includes('permission')) {
+          console.error('Permission error: Make sure the extension has "tabs" and "tabGroups" permissions');
+        }
+      }
+    }
+
+    console.log(`Tab grouping completed: ${successCount} successful, ${errorCount} failed`);
+
+    if (errorCount > 0 && successCount === 0) {
+      throw new Error(`Failed to create any tab groups (${errorCount} errors)`);
     }
   }
 }

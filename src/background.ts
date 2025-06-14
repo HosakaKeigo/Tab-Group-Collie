@@ -39,15 +39,20 @@ chrome.commands.onCommand.addListener(async (command) => {
 });
 
 // Handle messages from popup/options
-chrome.runtime.onMessage.addListener(async (request, _, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   if (request.type === 'GROUP_TABS') {
-    try {
-      await groupTabs();
-      sendResponse({ success: true });
-    } catch (error) {
-      console.error('Error grouping tabs:', error);
-      sendResponse({ success: false, error: error });
-    }
+    groupTabs()
+      .then(() => {
+        console.log('✅ Background: Tab grouping completed successfully');
+        sendResponse({ success: true });
+      })
+      .catch(error => {
+        console.error('❌ Background: Tab grouping failed:', error);
+        sendResponse({ success: false, error: String(error) });
+      });
+    
+    // 非同期レスポンスを示すためにtrueを返す
+    return true;
   }
 });
 
