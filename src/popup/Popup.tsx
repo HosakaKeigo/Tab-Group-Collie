@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useChromeStorage } from '../utils/useChromeStorage';
 import { ExtensionSettings } from '../types';
+import { DEFAULT_PROMPT } from '../utils/defaultPrompt';
 
 const Popup: React.FC = () => {
   const [settings, setSettings, isLoading] = useChromeStorage<ExtensionSettings>(
@@ -9,6 +10,7 @@ const Popup: React.FC = () => {
       apiKey: '',
       groupingMethod: 'hostname',
       isEnabled: true,
+      customPrompt: DEFAULT_PROMPT,
     }
   );
   
@@ -63,7 +65,7 @@ const Popup: React.FC = () => {
             onChange={toggleEnabled}
             style={{ marginRight: '8px' }}
           />
-          Enable auto-grouping
+          Enable Tab Group Collie
         </label>
       </div>
 
