@@ -36,8 +36,8 @@ export default defineManifest({
   commands: {
     'group-tabs': {
       suggested_key: {
-        default: 'Ctrl+Shift+G',
-        mac: 'Command+Shift+G',
+        default: 'Ctrl+Shift+S',
+        mac: 'Command+Shift+S',
       },
       description: 'Group tabs automatically',
     },
