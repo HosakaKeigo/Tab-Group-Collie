@@ -28,23 +28,4 @@ export class SettingsService {
   static async initializeDefaultSettings(): Promise<void> {
     await SettingsService.saveSettings(SettingsService.getDefaultSettings());
   }
-
-  // Validate API key and return validation result
-  static validateApiKey(apiKey: string): { isValid: boolean; error?: string } {
-    if (!apiKey || apiKey.trim() === '') {
-      return {
-        isValid: false,
-        error: 'API key is required'
-      };
-    }
-    
-    // Add more validation if needed (format, length, etc.)
-    return { isValid: true };
-  }
-
-  // Check if extension is enabled
-  static async isEnabled(): Promise<boolean> {
-    const settings = await this.loadSettings();
-    return settings.isEnabled;
-  }
 }
