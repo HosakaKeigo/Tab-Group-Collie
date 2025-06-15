@@ -3,6 +3,7 @@ import { generateObject } from 'ai';
 import * as v from 'valibot';
 import { valibotSchema } from '@ai-sdk/valibot';
 import type { TabInfo } from '../types';
+import { AI_MODELS, SEARCH_CONFIG, DEFAULTS } from '../constants';
 
 const searchResultSchema = v.object({
   results: v.array(v.object({
@@ -37,7 +38,7 @@ User's search query: "${searchQuery}"
 Browser tabs:
 ${tabsData.map((tab) => `${tab.index}: "${tab.title}" (${tab.hostname})`).join('\n')}
 
-Return the most relevant tabs (up to 5) with relevance scores from 0-100, where 100 is a perfect match.
+Return the most relevant tabs (up to ${DEFAULTS.MAX_SEARCH_RESULTS}) with relevance scores from ${SEARCH_CONFIG.MIN_RELEVANCE_SCORE}-${SEARCH_CONFIG.MAX_RELEVANCE_SCORE}, where ${SEARCH_CONFIG.MAX_RELEVANCE_SCORE} is a perfect match.
 Consider both exact matches and semantic similarity. Include a brief reason for each match.`;
 
     try {
@@ -46,7 +47,7 @@ Consider both exact matches and semantic similarity. Include a brief reason for 
       });
 
       const result = await generateObject({
-        model: google('gemini-2.0-flash-lite'),
+        model: google(AI_MODELS.GEMINI),
         schema: valibotSchema(searchResultSchema),
         prompt: searchPrompt,
       });
@@ -94,15 +95,15 @@ Consider both exact matches and semantic similarity. Include a brief reason for 
       let reason = '';
 
       if (titleMatch) {
-        score += 50;
+        score += SEARCH_CONFIG.FALLBACK_SCORES.TITLE_MATCH;
         reason = 'Title contains search term';
       }
       if (hostnameMatch) {
-        score += 30;
+        score += SEARCH_CONFIG.FALLBACK_SCORES.HOSTNAME_MATCH;
         reason = reason ? `${reason}, hostname match` : 'Hostname contains search term';
       }
       if (urlMatch && !hostnameMatch) {
-        score += 20;
+        score += SEARCH_CONFIG.FALLBACK_SCORES.URL_MATCH;
         reason = reason ? `${reason}, URL match` : 'URL contains search term';
       }
 
@@ -114,7 +115,7 @@ Consider both exact matches and semantic similarity. Include a brief reason for 
     return {
       results: results
         .sort((a, b) => b.relevanceScore - a.relevanceScore)
-        .slice(0, 5)
+        .slice(0, DEFAULTS.MAX_SEARCH_RESULTS)
     };
   }
 }

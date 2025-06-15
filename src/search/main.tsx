@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
+import { MESSAGE_TYPES } from '../constants';
 
 function SearchApp() {
   const [query, setQuery] = useState('');
@@ -20,7 +21,7 @@ function SearchApp() {
     if (query.trim() && hasApiKey) {
       // Send search query to background script
       chrome.runtime.sendMessage({
-        type: 'SEARCH_QUERY',
+        type: MESSAGE_TYPES.SEARCH_QUERY,
         query: query.trim()
       }, () => {
         // Close the window after sending the message

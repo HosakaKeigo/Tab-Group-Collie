@@ -2,6 +2,7 @@ import { TabGrouper } from './utils/tabGrouper';
 import { TabSearcher } from './utils/tabSearcher';
 import { ExtensionSettings, GroupingMethod } from './types';
 import { DEFAULT_PROMPT } from './utils/defaultPrompt';
+import { DEFAULTS, EXTENSION_CONFIG, MESSAGE_TYPES } from './constants';
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -10,8 +11,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await chrome.storage.sync.set({
       settings: {
         apiKey: '',
-        groupingMethod: 'hostname' as GroupingMethod,
-        isEnabled: true,
+        groupingMethod: DEFAULTS.GROUPING_METHOD,
+        isEnabled: DEFAULTS.IS_ENABLED,
         customPrompt: DEFAULT_PROMPT,
       } as ExtensionSettings,
     });
@@ -56,7 +57,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 // Handle messages from popup/options
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
-  if (request.type === 'GROUP_TABS') {
+  if (request.type === MESSAGE_TYPES.GROUP_TABS) {
     groupTabs()
       .then(() => {
         console.log('✅ Background: Tab grouping completed successfully');
@@ -69,7 +70,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     
     // 非同期レスポンスを示すためにtrueを返す
     return true;
-  } else if (request.type === 'SEARCH_QUERY' && request.query) {
+  } else if (request.type === MESSAGE_TYPES.SEARCH_QUERY && request.query) {
     handleSearchQuery(request.query)
       .then(() => {
         console.log('✅ Background: Tab search completed successfully');
@@ -90,8 +91,8 @@ async function groupTabs() {
     const result = await chrome.storage.sync.get('settings');
     const settings: ExtensionSettings = result.settings || {
       apiKey: '',
-      groupingMethod: 'hostname',
-      isEnabled: true,
+      groupingMethod: DEFAULTS.GROUPING_METHOD,
+      isEnabled: DEFAULTS.IS_ENABLED,
       customPrompt: DEFAULT_PROMPT,
     };
 
@@ -135,8 +136,8 @@ async function searchTabs() {
     const searchWindow = await chrome.windows.create({
       url: chrome.runtime.getURL('search.html'),
       type: 'popup',
-      width: 500,
-      height: 200,
+      width: EXTENSION_CONFIG.SEARCH_WINDOW.WIDTH,
+      height: EXTENSION_CONFIG.SEARCH_WINDOW.HEIGHT,
       focused: true
     });
     console.log('Search window created:', searchWindow);
@@ -151,8 +152,8 @@ async function handleSearchQuery(query: string) {
     const result = await chrome.storage.sync.get('settings');
     const settings: ExtensionSettings = result.settings || {
       apiKey: '',
-      groupingMethod: 'hostname',
-      isEnabled: true,
+      groupingMethod: DEFAULTS.GROUPING_METHOD,
+      isEnabled: DEFAULTS.IS_ENABLED,
       customPrompt: DEFAULT_PROMPT,
     };
 
@@ -165,7 +166,7 @@ async function handleSearchQuery(query: string) {
       // Show notification to user
       chrome.notifications.create({
         type: 'basic',
-        iconUrl: 'icons/icon48.svg',
+        iconUrl: EXTENSION_CONFIG.NOTIFICATION.ICON,
         title: 'Tab Search Error',
         message: 'API key is required for tab search. Please configure your Google API key in the extension options.'
       });
