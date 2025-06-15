@@ -50,7 +50,7 @@ export class TabGrouper {
 
   static async groupThematically(tabs: TabInfo[], apiKey?: string, customPrompt?: string): Promise<GroupSuggestion[]> {
     if (!apiKey) {
-      return this.groupBySimpleThemes(tabs);
+      throw new Error('API key is required for thematic grouping');
     }
 
     // AIを使用したテーマ別グループ化
@@ -88,38 +88,8 @@ export class TabGrouper {
       })).filter(group => group.tabs.length > 1); // 2つ以上のタブがあるグループのみ
     } catch (error) {
       console.error('AI grouping failed:', error);
-      // フォールバックとしてシンプルなテーマ別グループ化を使用
-      return this.groupBySimpleThemes(tabs);
+      throw new Error(`AI grouping failed: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }
-
-  private static groupBySimpleThemes(tabs: TabInfo[]): GroupSuggestion[] {
-    const themes = {
-      social: ['twitter.com', 'facebook.com', 'instagram.com', 'linkedin.com', 'reddit.com'],
-      development: ['github.com', 'stackoverflow.com', 'gitlab.com', 'codepen.io'],
-      ai: ['openai.com', 'claude.ai', 'gemini.google.com', 'chatgpt.com'],
-      google: ['google.com', 'gmail.com', 'drive.google.com', 'docs.google.com'],
-      media: ['youtube.com', 'vimeo.com', 'twitch.tv', 'netflix.com'],
-    };
-
-    const groups: GroupSuggestion[] = [];
-
-    Object.entries(themes).forEach(([theme, hostnames]) => {
-      const matchingTabs = tabs.filter(tab =>
-        hostnames.some(hostname => tab.hostname.includes(hostname))
-      );
-
-      if (matchingTabs.length > 1) {
-        groups.push({
-          tabs: matchingTabs,
-          groupName: theme.charAt(0).toUpperCase() + theme.slice(1),
-          color: this.getColorForTheme(theme),
-          reason: `Thematically grouped: ${theme} `,
-        });
-      }
-    });
-
-    return groups;
   }
 
   private static getColorForHostname(hostname: string): chrome.tabGroups.ColorEnum {
@@ -129,17 +99,6 @@ export class TabGrouper {
       return a & a;
     }, 0);
     return colors[Math.abs(hash) % colors.length];
-  }
-
-  private static getColorForTheme(theme: string): chrome.tabGroups.ColorEnum {
-    const themeColors: Record<string, chrome.tabGroups.ColorEnum> = {
-      social: 'blue',
-      development: 'green',
-      ai: 'purple',
-      google: 'red',
-      media: 'orange',
-    };
-    return themeColors[theme] || 'grey';
   }
 
   static async createTabGroups(suggestions: GroupSuggestion[]): Promise<void> {
