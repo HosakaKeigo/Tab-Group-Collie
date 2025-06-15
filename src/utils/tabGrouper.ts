@@ -3,6 +3,7 @@ import { TabInfo, GroupSuggestion } from '../types';
 import { generateObject } from "ai";
 import * as v from 'valibot';
 import { valibotSchema } from '@ai-sdk/valibot';
+import { DEFAULT_PROMPT } from './defaultPrompt';
 
 export class TabGrouper {
   private static getHostnameFromUrl(url: string): string {
@@ -66,17 +67,21 @@ export class TabGrouper {
       }));
   }
 
-  static async groupThematically(tabs: TabInfo[], apiKey?: string): Promise<GroupSuggestion[]> {
+  static async groupThematically(tabs: TabInfo[], apiKey?: string, customPrompt?: string): Promise<GroupSuggestion[]> {
     if (!apiKey) {
       return this.groupBySimpleThemes(tabs);
     }
 
     // AIを使用したテーマ別グループ化
-    return await this.groupByAi(tabs, apiKey);
+    return await this.groupByAi(tabs, apiKey, customPrompt);
   }
 
-  private static async groupByAi(tabs: TabInfo[], apiKey: string): Promise<GroupSuggestion[]> {
+  private static async groupByAi(tabs: TabInfo[], apiKey: string, customPrompt?: string): Promise<GroupSuggestion[]> {
     try {
+      const promptTemplate = customPrompt || DEFAULT_PROMPT;
+      const tabsString = tabs.map((tab, index) => `${index}: ${tab.title} (${tab.hostname})`).join('\n');
+      const prompt = promptTemplate.replace('{tabs}', tabsString);
+
       const { object: tabGroupObject } = await generateObject({
         model: createGoogleGenerativeAI({
           apiKey
@@ -89,37 +94,7 @@ export class TabGrouper {
             description: v.string()
           }))
         })),
-        prompt: `Group the following tabs thematically based on their titles and hostnames. 
-        Return a JSON object with this exact structure:
-        {
-          "groups": [
-            {
-              "tabIndices": [0, 1, 3],
-              "groupName": "Social Media",
-              "color": "blue",
-            }
-          ]
-        }
-
-        Rules:
-        - tabIndices: array of indices (0-based) of tabs that belong to this group
-        - groupName: descriptive name for the group
-        - color: must be one of 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange', 'grey'
-        - Only create groups with 2 or more tabs
-
-        Consider these themes:
-        - Social media sites (Twitter, Facebook, Instagram, LinkedIn, Reddit)
-        - Development tools and documentation (GitHub, Stack Overflow, MDN)
-        - AI/ML platforms (OpenAI, Claude, Gemini, ChatGPT)
-        - Google services (Gmail, Drive, Docs, YouTube)
-        - Media and entertainment (YouTube, Netflix, Twitch)
-        - E-commerce and shopping (Amazon, eBay, shopping sites)
-        - News and information sites
-        - Work and productivity tools
-
-        ----
-
-        Tabs:\n${tabs.map((tab, index) => `${index}: ${tab.title} (${tab.hostname})`).join('\n')}`,
+        prompt,
       });
 
 

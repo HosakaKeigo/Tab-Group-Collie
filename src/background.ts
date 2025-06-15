@@ -1,5 +1,6 @@
 import { TabGrouper } from './utils/tabGrouper';
 import { ExtensionSettings, GroupingMethod } from './types';
+import { DEFAULT_PROMPT } from './utils/defaultPrompt';
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -10,6 +11,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         apiKey: '',
         groupingMethod: 'hostname' as GroupingMethod,
         isEnabled: true,
+        customPrompt: DEFAULT_PROMPT,
       } as ExtensionSettings,
     });
 
@@ -64,6 +66,7 @@ async function groupTabs() {
       apiKey: '',
       groupingMethod: 'hostname',
       isEnabled: true,
+      customPrompt: DEFAULT_PROMPT,
     };
 
     if (!settings.isEnabled) {
@@ -84,7 +87,7 @@ async function groupTabs() {
         suggestions = TabGrouper.groupByTitle(tabs);
         break;
       case 'thematic':
-        suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey);
+        suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey, settings.customPrompt);
         break;
       default:
         suggestions = TabGrouper.groupByHostname(tabs);

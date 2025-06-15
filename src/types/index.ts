@@ -2,6 +2,7 @@ export interface ExtensionSettings {
   apiKey: string;
   groupingMethod: GroupingMethod;
   isEnabled: boolean;
+  customPrompt: string;
 }
 
 export type GroupingMethod = 'hostname' | 'title' | 'thematic';
@@ -25,4 +26,5 @@ export interface GroupingContext {
   method: GroupingMethod;
   tabs: TabInfo[];
   apiKey?: string;
+  customPrompt?: string;
 }
