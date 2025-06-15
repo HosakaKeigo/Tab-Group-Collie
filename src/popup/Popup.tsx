@@ -121,7 +121,7 @@ const Popup: React.FC = () => {
       )}
 
       <div style={{ marginTop: '20px', fontSize: '12px', color: '#666', textAlign: 'center' }}>
-        Shortcut: Ctrl+Shift+G (Cmd+Shift+G on Mac)
+        Shortcut: Ctrl+Shift+S (Cmd+Shift+S on Mac)
       </div>
     </div>
   );

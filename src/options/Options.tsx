@@ -168,7 +168,7 @@ const Options: React.FC = () => {
         <h4 style={{ marginBottom: '10px', color: '#555' }}>Usage:</h4>
         <ul style={{ fontSize: '14px', color: '#666', margin: 0, paddingLeft: '20px' }}>
           <li>Click the extension icon and press "Group Tabs Now"</li>
-          <li>Use keyboard shortcut: Ctrl+Shift+G (Cmd+Shift+G on Mac)</li>
+          <li>Use keyboard shortcut: Ctrl+Shift+S (Cmd+Shift+S on Mac)</li>
           <li>Right-click on any page and select "Group Tabs"</li>
         </ul>
       </div>
