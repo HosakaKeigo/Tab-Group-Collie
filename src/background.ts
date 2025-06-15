@@ -1,210 +1,40 @@
-import { TabGrouper } from './utils/tabGrouper';
-import { TabSearcher } from './utils/tabSearcher';
-import { ExtensionSettings } from './types';
-import { DEFAULT_PROMPT } from './utils/defaultPrompt';
-import { DEFAULTS, EXTENSION_CONFIG, MESSAGE_TYPES } from './constants';
-
-// Utility function to load settings with defaults
-async function loadSettings(): Promise<ExtensionSettings> {
-  const result = await chrome.storage.sync.get('settings');
-  return result.settings || getDefaultSettings();
-}
-
-// Utility function to get default settings
-function getDefaultSettings(): ExtensionSettings {
-  return {
-    apiKey: '',
-    groupingMethod: DEFAULTS.GROUPING_METHOD,
-    isEnabled: DEFAULTS.IS_ENABLED,
-    customPrompt: DEFAULT_PROMPT,
-  };
-}
-
-// Utility function to check API key and handle error
-async function validateApiKey(apiKey: string, context: 'grouping' | 'search'): Promise<boolean> {
-  if (!apiKey) {
-    console.error(`API key is required for ${context === 'grouping' ? 'thematic tab grouping' : 'tab search'}. Please configure your API key in the extension options.`);
-    // Open settings page with error message
-    chrome.runtime.openOptionsPage();
-    // Send message to options page to show error
-    setTimeout(() => {
-      chrome.runtime.sendMessage({
-        type: MESSAGE_TYPES.SHOW_API_KEY_ERROR,
-        context
-      });
-    }, 500);
-    return false;
-  }
-  return true;
-}
+import { 
+  SettingsService, 
+  MessageHandler, 
+  TabGroupService, 
+  TabSearchService 
+} from './services';
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    // Set default settings
-    await chrome.storage.sync.set({
-      settings: getDefaultSettings(),
-    });
+    // Initialize default settings
+    await SettingsService.initializeDefaultSettings();
 
-    // Create context menu
-    chrome.contextMenus.create({
-      id: 'group-tabs',
-      title: 'Group Tabs',
-      contexts: ['page'],
-    });
-
-    chrome.contextMenus.create({
-      id: 'search-tabs',
-      title: 'Search Tabs',
-      contexts: ['page'],
-    });
+    // Setup context menus
+    TabGroupService.setupContextMenu();
+    TabSearchService.setupContextMenu();
 
     console.log('Tab Group Collie installed');
   }
 });
 
-// Handle context menu clicks
+// Setup context menu click handlers
 chrome.contextMenus.onClicked.addListener(async (info, _) => {
-  if (info.menuItemId === 'group-tabs') {
-    await groupTabs();
-  } else if (info.menuItemId === 'search-tabs') {
-    console.log('Search tabs context menu clicked');
-    await searchTabs();
+  const handled = TabGroupService.handleContextMenuClick(info.menuItemId as string) ||
+                  TabSearchService.handleContextMenuClick(info.menuItemId as string);
+  
+  if (!handled) {
+    console.warn('Unhandled context menu item:', info.menuItemId);
   }
 });
 
-// Handle keyboard shortcuts
-chrome.commands.onCommand.addListener(async (command) => {
-  console.log('Command received:', command);
-  if (command === 'group-tabs') {
-    await groupTabs();
-  } else if (command === 'search-tabs') {
-    console.log('Starting tab search...');
-    await searchTabs();
-  }
-});
+// Setup keyboard shortcuts
+TabGroupService.setupKeyboardShortcuts();
+TabSearchService.setupKeyboardShortcuts();
 
-// Handle messages from popup/options
-chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
-  if (request.type === MESSAGE_TYPES.GROUP_TABS) {
-    groupTabs()
-      .then(() => {
-        console.log('✅ Background: Tab grouping completed successfully');
-        sendResponse({ success: true });
-      })
-      .catch(error => {
-        console.error('❌ Background: Tab grouping failed:', error);
-        sendResponse({ success: false, error: String(error) });
-      });
-
-    // 非同期レスポンスを示すためにtrueを返す
-    return true;
-  } else if (request.type === MESSAGE_TYPES.SEARCH_QUERY && request.query) {
-    handleSearchQuery(request.query)
-      .then(() => {
-        console.log('✅ Background: Tab search completed successfully');
-        sendResponse({ success: true });
-      })
-      .catch(error => {
-        console.error('❌ Background: Tab search failed:', error);
-        sendResponse({ success: false, error: String(error) });
-      });
-
-    return true;
-  }
-});
-
-async function groupTabs() {
-  try {
-    // Get settings
-    const settings = await loadSettings();
-
-    if (!settings.isEnabled) {
-      console.log('Tab grouping is disabled');
-      return;
-    }
-
-    // Get all tabs
-    const tabs = await TabGrouper.getAllTabs();
-
-    // Group tabs based on method
-    let suggestions;
-    switch (settings.groupingMethod) {
-      case 'hostname':
-        suggestions = TabGrouper.groupByHostname(tabs);
-        break;
-      case 'thematic':
-        // Check if API key is available for thematic grouping
-        if (!(await validateApiKey(settings.apiKey, 'grouping'))) {
-          return;
-        }
-        suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey, settings.customPrompt);
-        break;
-      default:
-        throw new Error(`Unknown grouping method: ${settings.groupingMethod}`);
-    }
-
-    // Create tab groups
-    if (suggestions.length > 0) {
-      await TabGrouper.createTabGroups(suggestions);
-      console.log(`Created ${suggestions.length} tab groups`);
-    } else {
-      console.log('No grouping suggestions found');
-    }
-  } catch (error) {
-    console.error('Error grouping tabs:', error);
-  }
-}
-
-async function searchTabs() {
-  try {
-    console.log('Creating search window...');
-    // Create a new window to get search input
-    const searchWindow = await chrome.windows.create({
-      url: chrome.runtime.getURL('search.html'),
-      type: 'popup',
-      width: EXTENSION_CONFIG.SEARCH_WINDOW.WIDTH,
-      height: EXTENSION_CONFIG.SEARCH_WINDOW.HEIGHT,
-      focused: true
-    });
-    console.log('Search window created:', searchWindow);
-  } catch (error) {
-    console.error('Error opening search window:', error);
-  }
-}
-
-async function handleSearchQuery(query: string) {
-  try {
-    // Get settings
-    const settings = await loadSettings();
-
-    // Get all tabs
-    const tabs = await TabGrouper.getAllTabs();
-
-    // Check if API key is available
-    if (!(await validateApiKey(settings.apiKey, 'search'))) {
-      return;
-    }
-
-    // Search tabs with AI
-    const searchResults = await TabSearcher.searchTabs(tabs, query, settings.apiKey);
-
-    if (searchResults.results.length > 0) {
-      // Switch to the most relevant tab
-      const bestMatch = searchResults.results[0];
-      await chrome.tabs.update(bestMatch.tab.id, { active: true });
-      await chrome.windows.update(bestMatch.tab.windowId!, { focused: true });
-
-      // Optionally show all results in console
-      console.log('Search results:', searchResults.results.map(r => ({
-        title: r.tab.title,
-        score: r.relevanceScore,
-        reason: r.reason
-      })));
-    } else {
-      console.log('No matching tabs found for query:', query);
-    }
-  } catch (error) {
-    console.error('Error searching tabs:', error);
-  }
-}
+// Setup message handlers
+MessageHandler.setupMessageListeners(
+  TabGroupService.groupTabs,
+  TabSearchService.handleSearchQuery
+);
