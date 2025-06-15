@@ -1,40 +1,16 @@
-import { 
-  SettingsService, 
-  MessageHandler, 
-  TabGroupService, 
-  TabSearchService 
-} from './services';
+import { ExtensionManager } from './core/ExtensionManager';
 
-// Initialize extension
+// ExtensionManagerのシングルトンインスタンスを取得
+const extensionManager = ExtensionManager.getInstance();
+
+// 拡張機能のインストール時の処理
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    // Initialize default settings
-    await SettingsService.initializeDefaultSettings();
-
-    // Setup context menus
-    TabGroupService.setupContextMenu();
-    TabSearchService.setupContextMenu();
-
-    console.log('Tab Group Collie installed');
+    await extensionManager.handleInstall();
   }
 });
 
-// Setup context menu click handlers
-chrome.contextMenus.onClicked.addListener(async (info, _) => {
-  const handled = TabGroupService.handleContextMenuClick(info.menuItemId as string) ||
-                  TabSearchService.handleContextMenuClick(info.menuItemId as string);
-  
-  if (!handled) {
-    console.warn('Unhandled context menu item:', info.menuItemId);
-  }
+// ExtensionManagerを初期化
+extensionManager.initialize().catch(error => {
+  console.error('❌ Failed to initialize ExtensionManager:', error);
 });
-
-// Setup keyboard shortcuts
-TabGroupService.setupKeyboardShortcuts();
-TabSearchService.setupKeyboardShortcuts();
-
-// Setup message handlers
-MessageHandler.setupMessageListeners(
-  () => TabGroupService.groupTabs(),
-  (query: string) => TabSearchService.handleSearchQuery(query)
-);
