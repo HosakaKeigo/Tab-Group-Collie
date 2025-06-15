@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import * as v from 'valibot';
 import { valibotSchema } from '@ai-sdk/valibot';
 import { DEFAULT_PROMPT } from './defaultPrompt';
+import { AI_MODELS } from '../constants';
 
 export class TabGrouper {
   private static getHostnameFromUrl(url: string): string {
@@ -65,7 +66,7 @@ export class TabGrouper {
       const { object: tabGroupObject } = await generateObject({
         model: createGoogleGenerativeAI({
           apiKey
-        })("gemini-2.0-flash"),
+        })(AI_MODELS.GEMINI),
         schema: valibotSchema(v.object({
           groups: v.array(v.object({
             tabIndices: v.array(v.number()),

@@ -1,6 +1,6 @@
 import { TabGrouper } from './utils/tabGrouper';
 import { TabSearcher } from './utils/tabSearcher';
-import { ExtensionSettings, GroupingMethod } from './types';
+import { ExtensionSettings } from './types';
 import { DEFAULT_PROMPT } from './utils/defaultPrompt';
 import { DEFAULTS, EXTENSION_CONFIG, MESSAGE_TYPES } from './constants';
 
