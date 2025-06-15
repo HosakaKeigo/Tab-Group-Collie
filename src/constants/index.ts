@@ -1,6 +1,6 @@
 // AI Model Configuration
 export const AI_MODELS = {
-  GEMINI: 'gemini-2.0-flash',
+  GEMINI: 'gemini-2.0-flash-lite',
 } as const;
 
 // Extension Configuration
@@ -22,7 +22,7 @@ export const MESSAGE_TYPES = {
 
 // Default Values
 export const DEFAULTS = {
-  GROUPING_METHOD: 'hostname' as const,
+  GROUPING_METHOD: 'thematic',
   IS_ENABLED: true,
   MAX_SEARCH_RESULTS: 5,
 } as const;

@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { useChromeStorage } from '../utils/useChromeStorage';
 import { ExtensionSettings, GroupingMethod } from '../types';
 import { DEFAULT_PROMPT } from '../utils/defaultPrompt';
+import { DEFAULTS } from '../constants';
 
 const Options: React.FC = () => {
   const [settings, setSettings, isLoading] = useChromeStorage<ExtensionSettings>(
     'settings',
     {
       apiKey: '',
-      groupingMethod: 'hostname',
-      isEnabled: true,
+      groupingMethod: DEFAULTS.GROUPING_METHOD,
+      isEnabled: DEFAULTS.IS_ENABLED,
       customPrompt: DEFAULT_PROMPT,
     }
   );

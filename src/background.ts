@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
         console.error('❌ Background: Tab grouping failed:', error);
         sendResponse({ success: false, error: String(error) });
       });
-    
+
     // 非同期レスポンスを示すためにtrueを返す
     return true;
   } else if (request.type === MESSAGE_TYPES.SEARCH_QUERY && request.query) {
@@ -80,7 +80,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
         console.error('❌ Background: Tab search failed:', error);
         sendResponse({ success: false, error: String(error) });
       });
-    
+
     return true;
   }
 });
@@ -114,7 +114,7 @@ async function groupTabs() {
         suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey, settings.customPrompt);
         break;
       default:
-        suggestions = TabGrouper.groupByHostname(tabs);
+        throw new Error(`Unknown grouping method: ${settings.groupingMethod}`);
     }
 
     // Create tab groups
