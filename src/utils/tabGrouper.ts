@@ -22,6 +22,7 @@ export class TabGrouper {
       url: tab.url || '',
       hostname: this.getHostnameFromUrl(tab.url || ''),
       favicon: tab.favIconUrl,
+      windowId: tab.windowId,
     }));
   }
 

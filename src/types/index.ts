@@ -13,6 +13,7 @@ export interface TabInfo {
   url: string;
   hostname: string;
   favicon?: string;
+  windowId?: number;
 }
 
 export interface GroupSuggestion {

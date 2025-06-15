@@ -10,6 +10,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
+      input: {
+        popup: 'popup.html',
+        options: 'options.html',
+        search: 'search.html',
+      },
       output: {
         entryFileNames: 'src/[name].js',
         chunkFileNames: 'assets/js/[name].js',

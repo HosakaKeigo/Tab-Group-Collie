@@ -28,6 +28,7 @@ export default defineManifest({
     'storage',
     'contextMenus',
     'activeTab',
+    'notifications',
   ],
   host_permissions: [
     'https://*/*',
@@ -41,5 +42,18 @@ export default defineManifest({
       },
       description: 'Group tabs automatically',
     },
+    'search-tabs': {
+      suggested_key: {
+        default: 'Ctrl+Shift+P',
+        mac: 'Command+Shift+P',
+      },
+      description: 'Search through open tabs',
+    },
   },
+  web_accessible_resources: [
+    {
+      resources: ['search.html'],
+      matches: ['<all_urls>'],
+    },
+  ],
 });
