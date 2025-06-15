@@ -4,17 +4,28 @@ import { ExtensionSettings } from './types';
 import { DEFAULT_PROMPT } from './utils/defaultPrompt';
 import { DEFAULTS, EXTENSION_CONFIG, MESSAGE_TYPES } from './constants';
 
+// Utility function to load settings with defaults
+async function loadSettings(): Promise<ExtensionSettings> {
+  const result = await chrome.storage.sync.get('settings');
+  return result.settings || getDefaultSettings();
+}
+
+// Utility function to get default settings
+function getDefaultSettings(): ExtensionSettings {
+  return {
+    apiKey: '',
+    groupingMethod: DEFAULTS.GROUPING_METHOD,
+    isEnabled: DEFAULTS.IS_ENABLED,
+    customPrompt: DEFAULT_PROMPT,
+  };
+}
+
 // Initialize extension
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
     // Set default settings
     await chrome.storage.sync.set({
-      settings: {
-        apiKey: '',
-        groupingMethod: DEFAULTS.GROUPING_METHOD,
-        isEnabled: DEFAULTS.IS_ENABLED,
-        customPrompt: DEFAULT_PROMPT,
-      } as ExtensionSettings,
+      settings: getDefaultSettings(),
     });
 
     // Create context menu
@@ -88,13 +99,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 async function groupTabs() {
   try {
     // Get settings
-    const result = await chrome.storage.sync.get('settings');
-    const settings: ExtensionSettings = result.settings || {
-      apiKey: '',
-      groupingMethod: DEFAULTS.GROUPING_METHOD,
-      isEnabled: DEFAULTS.IS_ENABLED,
-      customPrompt: DEFAULT_PROMPT,
-    };
+    const settings = await loadSettings();
 
     if (!settings.isEnabled) {
       console.log('Tab grouping is disabled');
@@ -163,13 +168,7 @@ async function searchTabs() {
 async function handleSearchQuery(query: string) {
   try {
     // Get settings
-    const result = await chrome.storage.sync.get('settings');
-    const settings: ExtensionSettings = result.settings || {
-      apiKey: '',
-      groupingMethod: DEFAULTS.GROUPING_METHOD,
-      isEnabled: DEFAULTS.IS_ENABLED,
-      customPrompt: DEFAULT_PROMPT,
-    };
+    const settings = await loadSettings();
 
     // Get all tabs
     const tabs = await TabGrouper.getAllTabs();
