@@ -483,10 +483,21 @@ export class ExtensionManager {
 
     for (const suggestion of suggestions) {
       try {
-        // タブIDの有効性をチェック
-        const tabIds = suggestion.tabs
-          .map(tab => tab.id)
-          .filter(id => id && id > 0);
+        // タブIDの有効性をチェックし、通常のウィンドウのタブのみを取得
+        const validTabs = [];
+        for (const tab of suggestion.tabs) {
+          if (tab.id && tab.id > 0 && tab.windowId) {
+            try {
+              const window = await chrome.windows.get(tab.windowId);
+              if (window.type === 'normal') {
+                validTabs.push(tab.id);
+              }
+            } catch (e) {
+              console.warn(`Could not get window info for tab ${tab.id}`);
+            }
+          }
+        }
+        const tabIds = validTabs;
 
         if (tabIds.length < 2) {
           console.warn(`Skipping group "${suggestion.groupName}": insufficient valid tabs (${tabIds.length})`);
