@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useChromeStorage } from '../utils/useChromeStorage';
 import { ExtensionSettings, GroupingMethod } from '../types';
 import { DEFAULT_PROMPT } from '../utils/defaultPrompt';
-import { DEFAULTS } from '../constants';
+import { DEFAULTS, MESSAGE_TYPES } from '../constants';
 
 const Options: React.FC = () => {
   const [settings, setSettings, isLoading] = useChromeStorage<ExtensionSettings>(
@@ -16,6 +16,31 @@ const Options: React.FC = () => {
   );
 
   const [saveMessage, setSaveMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const apiKeyInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Listen for error messages from background script
+    const messageListener = (request: any) => {
+      if (request.type === MESSAGE_TYPES.SHOW_API_KEY_ERROR) {
+        const contextMessage = request.context === 'grouping' 
+          ? 'API key is required for thematic tab grouping!' 
+          : 'API key is required for tab search!';
+        setErrorMessage(contextMessage);
+        // Focus on API key input
+        setTimeout(() => {
+          apiKeyInputRef.current?.focus();
+          apiKeyInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+        setTimeout(() => setErrorMessage(''), 5000);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(messageListener);
+    return () => {
+      chrome.runtime.onMessage.removeListener(messageListener);
+    };
+  }, []);
 
   const handleSave = () => {
     setSaveMessage('Settings saved!');
@@ -58,6 +83,30 @@ const Options: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '40px' }}>
+      {errorMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            right: '0',
+            padding: '15px',
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            fontSize: '14px',
+            border: '1px solid #ffcdd2',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
+            zIndex: 1000,
+            textAlign: 'center',
+            fontWeight: 'bold',
+          }}
+        >
+          {errorMessage}
+        </div>
+      )}
+
       <h1 style={{ marginBottom: '30px', color: '#333' }}>🐕 Tab Group Collie Settings</h1>
 
       <div style={{ marginBottom: '30px' }}>
@@ -114,6 +163,7 @@ const Options: React.FC = () => {
           For enhanced thematic grouping using AI. Leave empty to use basic thematic grouping.
         </p>
         <input
+          ref={apiKeyInputRef}
           type="password"
           value={settings.apiKey}
           onChange={handleApiKeyChange}

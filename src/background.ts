@@ -111,6 +111,20 @@ async function groupTabs() {
         suggestions = TabGrouper.groupByHostname(tabs);
         break;
       case 'thematic':
+        // Check if API key is available for thematic grouping
+        if (!settings.apiKey) {
+          console.error('API key is required for thematic grouping. Please configure your API key in the extension options.');
+          // Open settings page with error message
+          chrome.runtime.openOptionsPage();
+          // Send message to options page to show error
+          setTimeout(() => {
+            chrome.runtime.sendMessage({
+              type: MESSAGE_TYPES.SHOW_API_KEY_ERROR,
+              context: 'grouping'
+            });
+          }, 500);
+          return;
+        }
         suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey, settings.customPrompt);
         break;
       default:
@@ -163,13 +177,15 @@ async function handleSearchQuery(query: string) {
     // Check if API key is available
     if (!settings.apiKey) {
       console.error('API key is required for tab search. Please configure your API key in the extension options.');
-      // Show notification to user
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: EXTENSION_CONFIG.NOTIFICATION.ICON,
-        title: 'Tab Search Error',
-        message: 'API key is required for tab search. Please configure your Google API key in the extension options.'
-      });
+      // Open settings page with error message
+      chrome.runtime.openOptionsPage();
+      // Send message to options page to show error
+      setTimeout(() => {
+        chrome.runtime.sendMessage({
+          type: MESSAGE_TYPES.SHOW_API_KEY_ERROR,
+          context: 'search'
+        });
+      }, 500);
       return;
     }
 

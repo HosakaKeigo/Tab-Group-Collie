@@ -9,15 +9,13 @@ export const EXTENSION_CONFIG = {
     WIDTH: 500,
     HEIGHT: 200,
   },
-  NOTIFICATION: {
-    ICON: 'icons/icon48.svg',
-  },
 } as const;
 
 // Message Types
 export const MESSAGE_TYPES = {
   GROUP_TABS: 'GROUP_TABS',
   SEARCH_QUERY: 'SEARCH_QUERY',
+  SHOW_API_KEY_ERROR: 'SHOW_API_KEY_ERROR',
 } as const;
 
 // Default Values

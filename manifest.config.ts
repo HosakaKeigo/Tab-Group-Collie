@@ -28,7 +28,6 @@ export default defineManifest({
     'storage',
     'contextMenus',
     'activeTab',
-    'notifications',
   ],
   host_permissions: [
     'https://*/*',
