@@ -42,7 +42,7 @@ export class TabSearchService {
       if (searchResults.results.length > 0) {
         // Switch to the most relevant tab
         const bestMatch = searchResults.results[0];
-        await this.switchToTab(bestMatch.tab);
+        await TabSearchService.switchToTab(bestMatch.tab);
 
         // Log search results
         console.log('Search results:', searchResults.results.map(r => ({
@@ -80,7 +80,7 @@ export class TabSearchService {
   static handleContextMenuClick(menuItemId: string): boolean {
     if (menuItemId === 'search-tabs') {
       console.log('Search tabs context menu clicked');
-      this.searchTabs().catch(error => {
+      TabSearchService.searchTabs().catch(error => {
         console.error('Context menu search tabs failed:', error);
       });
       return true;
@@ -94,7 +94,7 @@ export class TabSearchService {
       console.log('Command received:', command);
       if (command === 'search-tabs') {
         console.log('Starting tab search...');
-        await this.searchTabs();
+        await TabSearchService.searchTabs();
       }
     });
   }

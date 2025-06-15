@@ -65,7 +65,7 @@ export class TabGroupService {
   // Handle context menu clicks
   static handleContextMenuClick(menuItemId: string): boolean {
     if (menuItemId === 'group-tabs') {
-      this.groupTabs().catch(error => {
+      TabGroupService.groupTabs().catch(error => {
         console.error('Context menu group tabs failed:', error);
       });
       return true;
@@ -78,7 +78,7 @@ export class TabGroupService {
     chrome.commands.onCommand.addListener(async (command) => {
       console.log('Command received:', command);
       if (command === 'group-tabs') {
-        await this.groupTabs();
+        await TabGroupService.groupTabs();
       }
     });
   }

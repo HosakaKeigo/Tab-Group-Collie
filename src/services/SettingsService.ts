@@ -16,7 +16,7 @@ export class SettingsService {
   // Load settings from Chrome storage with fallback to defaults
   static async loadSettings(): Promise<ExtensionSettings> {
     const result = await chrome.storage.sync.get('settings');
-    return result.settings || this.getDefaultSettings();
+    return result.settings || SettingsService.getDefaultSettings();
   }
 
   // Save settings to Chrome storage
@@ -26,7 +26,7 @@ export class SettingsService {
 
   // Initialize default settings (used during extension install)
   static async initializeDefaultSettings(): Promise<void> {
-    await this.saveSettings(this.getDefaultSettings());
+    await SettingsService.saveSettings(SettingsService.getDefaultSettings());
   }
 
   // Validate API key and return validation result

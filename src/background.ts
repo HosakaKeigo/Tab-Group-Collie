@@ -35,6 +35,6 @@ TabSearchService.setupKeyboardShortcuts();
 
 // Setup message handlers
 MessageHandler.setupMessageListeners(
-  TabGroupService.groupTabs,
-  TabSearchService.handleSearchQuery
+  () => TabGroupService.groupTabs(),
+  (query: string) => TabSearchService.handleSearchQuery(query)
 );
