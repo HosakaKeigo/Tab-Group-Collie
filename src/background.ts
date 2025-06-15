@@ -20,6 +20,24 @@ function getDefaultSettings(): ExtensionSettings {
   };
 }
 
+// Utility function to check API key and handle error
+async function validateApiKey(apiKey: string, context: 'grouping' | 'search'): Promise<boolean> {
+  if (!apiKey) {
+    console.error(`API key is required for ${context === 'grouping' ? 'thematic tab grouping' : 'tab search'}. Please configure your API key in the extension options.`);
+    // Open settings page with error message
+    chrome.runtime.openOptionsPage();
+    // Send message to options page to show error
+    setTimeout(() => {
+      chrome.runtime.sendMessage({
+        type: MESSAGE_TYPES.SHOW_API_KEY_ERROR,
+        context
+      });
+    }, 500);
+    return false;
+  }
+  return true;
+}
+
 // Initialize extension
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
@@ -117,17 +135,7 @@ async function groupTabs() {
         break;
       case 'thematic':
         // Check if API key is available for thematic grouping
-        if (!settings.apiKey) {
-          console.error('API key is required for thematic grouping. Please configure your API key in the extension options.');
-          // Open settings page with error message
-          chrome.runtime.openOptionsPage();
-          // Send message to options page to show error
-          setTimeout(() => {
-            chrome.runtime.sendMessage({
-              type: MESSAGE_TYPES.SHOW_API_KEY_ERROR,
-              context: 'grouping'
-            });
-          }, 500);
+        if (!(await validateApiKey(settings.apiKey, 'grouping'))) {
           return;
         }
         suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey, settings.customPrompt);
@@ -174,17 +182,7 @@ async function handleSearchQuery(query: string) {
     const tabs = await TabGrouper.getAllTabs();
 
     // Check if API key is available
-    if (!settings.apiKey) {
-      console.error('API key is required for tab search. Please configure your API key in the extension options.');
-      // Open settings page with error message
-      chrome.runtime.openOptionsPage();
-      // Send message to options page to show error
-      setTimeout(() => {
-        chrome.runtime.sendMessage({
-          type: MESSAGE_TYPES.SHOW_API_KEY_ERROR,
-          context: 'search'
-        });
-      }, 500);
+    if (!(await validateApiKey(settings.apiKey, 'search'))) {
       return;
     }
 
