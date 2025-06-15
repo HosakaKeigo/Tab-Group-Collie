@@ -83,9 +83,6 @@ async function groupTabs() {
       case 'hostname':
         suggestions = TabGrouper.groupByHostname(tabs);
         break;
-      case 'title':
-        suggestions = TabGrouper.groupByTitle(tabs);
-        break;
       case 'thematic':
         suggestions = await TabGrouper.groupThematically(tabs, settings.apiKey, settings.customPrompt);
         break;

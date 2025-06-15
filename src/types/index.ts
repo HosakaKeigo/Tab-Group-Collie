@@ -5,7 +5,7 @@ export interface ExtensionSettings {
   customPrompt: string;
 }
 
-export type GroupingMethod = 'hostname' | 'title' | 'thematic';
+export type GroupingMethod = 'hostname' | 'thematic';
 
 export interface TabInfo {
   id: number;

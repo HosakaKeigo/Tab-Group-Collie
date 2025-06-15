@@ -46,27 +46,6 @@ export class TabGrouper {
       }));
   }
 
-  static groupByTitle(tabs: TabInfo[]): GroupSuggestion[] {
-    const groups = new Map<string, TabInfo[]>();
-
-    tabs.forEach(tab => {
-      const titleWords = tab.title.toLowerCase().split(' ').slice(0, 3).join(' ');
-      if (!groups.has(titleWords)) {
-        groups.set(titleWords, []);
-      }
-      groups.get(titleWords)!.push(tab);
-    });
-
-    return Array.from(groups.entries())
-      .filter(([_, tabList]) => tabList.length > 1)
-      .map(([titlePrefix, tabList]) => ({
-        tabs: tabList,
-        groupName: titlePrefix,
-        color: this.getColorForTitle(titlePrefix),
-        reason: `Grouped by title similarity: "${titlePrefix}"`,
-      }));
-  }
-
   static async groupThematically(tabs: TabInfo[], apiKey?: string, customPrompt?: string): Promise<GroupSuggestion[]> {
     if (!apiKey) {
       return this.groupBySimpleThemes(tabs);
@@ -148,12 +127,6 @@ export class TabGrouper {
       return a & a;
     }, 0);
     return colors[Math.abs(hash) % colors.length];
-  }
-
-  private static getColorForTitle(title: string): chrome.tabGroups.ColorEnum {
-    const colors: chrome.tabGroups.ColorEnum[] = ['green', 'blue', 'purple', 'cyan'];
-    const hash = title.length;
-    return colors[hash % colors.length];
   }
 
   private static getColorForTheme(theme: string): chrome.tabGroups.ColorEnum {

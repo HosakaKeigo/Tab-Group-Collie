@@ -76,7 +76,6 @@ const Options: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[
             { value: 'hostname', label: 'Hostname', description: 'Group tabs by domain (e.g., all Google sites together)' },
-            { value: 'title', label: 'Title', description: 'Group tabs with similar page titles' },
             { value: 'thematic', label: 'Thematic', description: 'Group tabs by theme (e.g., social media, development tools)' },
           ].map((method) => (
             <label
